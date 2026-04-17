@@ -4,7 +4,8 @@
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6-yellow)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-## 🌟 Live Demo
+<img width="1024" height="1536" alt="Image" src="https://github.com/user-attachments/assets/92d74b8b-945b-4a88-a337-89eff197ee26" />
+
 
 ## 📋 Overview
 ShopSmart is an intelligent e-commerce platform that leverages AI algorithms to provide personalized product recommendations based on user behavior and preferences.
