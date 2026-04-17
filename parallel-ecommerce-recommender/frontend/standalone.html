@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>E-Commerce Recommendation System</title>
+    <style>
+        body { font-family: Arial; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .section { border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        input, button { padding: 8px; margin: 5px; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        button:hover { background: #0056b3; }
+        .product { border: 1px solid #ddd; padding: 10px; margin: 10px; display: inline-block; width: 200px; border-radius: 8px; }
+        .error { color: red; }
+        .success { color: green; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>🛍️ E-Commerce Recommendation System</h1>
+    
+    <div id="status" class="section">
+        <h3>System Status</h3>
+        <div id="apiStatus">Checking API connection...</div>
+    </div>
+    
+    <div class="section">
+        <h3>📝 Register</h3>
+        <input type="text" id="regUsername" placeholder="Username">
+        <input type="email" id="regEmail" placeholder="Email">
+        <input type="password" id="regPassword" placeholder="Password">
+        <button onclick="register()">Register</button>
+        <div id="regResult"></div>
+    </div>
+    
+    <div class="section">
+        <h3>🔐 Login</h3>
+        <input type="text" id="loginUsername" placeholder="Username">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <div id="loginResult"></div>
+    </div>
+    
+    <div class="section" id="productsSection" style="display:none;">
+        <h3>📦 Products</h3>
+        <button onclick="loadProducts()">Load Products</button>
+        <div id="products"></div>
+    </div>
+    
+    <div class="section" id="recommendationsSection" style="display:none;">
+        <h3>🎯 Personalized Recommendations</h3>
+        <button onclick="loadRecommendations()">Get Recommendations</button>
+        <div id="recommendations"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000';
+        let token = localStorage.getItem('token');
+        
+        // Check API on page load
+        checkAPI();
+        
+        async function checkAPI() {
+            const statusDiv = document.getElementById('apiStatus');
+            statusDiv.innerHTML = 'Connecting...';
+            
+            try {
+                const response = await fetch(`${API_URL}/`);
+                const data = await response.json();
+                statusDiv.innerHTML = `<span class="success">✅ Connected to backend! Status: ${data.message}</span>`;
+                
+                if (token) {
+                    document.getElementById('productsSection').style.display = 'block';
+                    document.getElementById('recommendationsSection').style.display = 'block';
+                    loadProducts();
+                    loadRecommendations();
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<span class="error">❌ Cannot connect to backend. Make sure backend is running on port 8000.<br>Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function register() {
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            
+            if (!username || !email || !password) {
+                document.getElementById('regResult').innerHTML = '<span class="error">Please fill all fields</span>';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('regResult').innerHTML = `<span class="success">✅ Registration successful! Welcome ${username}</span>`;
+                    token = data.access_token;
+                    localStorage.setItem('token', token);
+                    document.getElementById('productsSection').style.display = 'block';
+                    document.getElementById('recommendationsSection').style.display = 'block';
+                    loadProducts();
+                } else {
+                    document.getElementById('regResult').innerHTML = `<span class="error">❌ Error: ${data.detail}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('regResult').innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!username || !password) {
+                document.getElementById('loginResult').innerHTML = '<span class="error">Please enter username and password</span>';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('loginResult').innerHTML = `<span class="success">✅ Login successful! Welcome back ${username}</span>`;
+                    token = data.access_token;
+                    localStorage.setItem('token', token);
+                    document.getElementById('productsSection').style.display = 'block';
+                    document.getElementById('recommendationsSection').style.display = 'block';
+                    loadProducts();
+                    loadRecommendations();
+                } else {
+                    document.getElementById('loginResult').innerHTML = `<span class="error">❌ Login failed: ${data.detail}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('loginResult').innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function loadProducts() {
+            if (!token) {
+                alert('Please login first');
+                return;
+            }
+            
+            const productsDiv = document.getElementById('products');
+            productsDiv.innerHTML = 'Loading products...';
+            
+            try {
+                const response = await fetch(`${API_URL}/products?limit=12`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const products = await response.json();
+                
+                if (products.length === 0) {
+                    productsDiv.innerHTML = '<span class="error">No products found in database</span>';
+                    return;
+                }
+                
+                let html = '';
+                products.forEach(product => {
+                    html += `
+                        <div class="product">
+                            <strong>${product.name}</strong><br>
+                            💰 $${product.price}<br>
+                            📂 ${product.category}<br>
+                            ⭐ ${product.rating}<br>
+                            <button onclick="viewProduct(${product.id})">View Product</button>
+                        </div>
+                    `;
+                });
+                productsDiv.innerHTML = html;
+            } catch (error) {
+                productsDiv.innerHTML = `<span class="error">Error loading products: ${error.message}</span>`;
+            }
+        }
+        
+        async function loadRecommendations() {
+            if (!token) {
+                alert('Please login first');
+                return;
+            }
+            
+            const recsDiv = document.getElementById('recommendations');
+            recsDiv.innerHTML = 'Loading recommendations...';
+            
+            try {
+                const response = await fetch(`${API_URL}/recommendations?limit=6`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                const recommendations = data.recommendations;
+                
+                if (recommendations.length === 0) {
+                    recsDiv.innerHTML = '<span class="info">No recommendations yet. Browse some products first!</span>';
+                    return;
+                }
+                
+                let html = '';
+                recommendations.forEach(product => {
+                    html += `
+                        <div class="product">
+                            <strong>${product.name}</strong><br>
+                            💰 $${product.price}<br>
+                            📂 ${product.category}<br>
+                            ⭐ ${product.rating}<br>
+                            <button onclick="viewProduct(${product.id})">View</button>
+                        </div>
+                    `;
+                });
+                recsDiv.innerHTML = html;
+            } catch (error) {
+                recsDiv.innerHTML = `<span class="error">Error loading recommendations: ${error.message}</span>`;
+            }
+        }
+        
+        async function viewProduct(productId) {
+            if (!token) {
+                alert('Please login first');
+                return;
+            }
+            
+            try {
+                await fetch(`${API_URL}/user-interaction`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        interaction_type: 'view'
+                    })
+                });
+                
+                alert('Product viewed! Recommendations will update.');
+                setTimeout(() => loadRecommendations(), 1000);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

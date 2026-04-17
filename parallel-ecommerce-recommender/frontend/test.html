@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test E-Commerce API</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .product { border: 1px solid #ccc; padding: 10px; margin: 10px; display: inline-block; width: 200px; }
+        button { background: blue; color: white; padding: 10px; margin: 5px; cursor: pointer; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>E-Commerce Recommendation System Test</h1>
+    
+    <div id="status">Checking API connection...</div>
+    
+    <hr>
+    
+    <h2>Register</h2>
+    <input type="text" id="regUsername" placeholder="Username">
+    <input type="email" id="regEmail" placeholder="Email">
+    <input type="password" id="regPassword" placeholder="Password">
+    <button onclick="register()">Register</button>
+    <div id="regResult"></div>
+    
+    <hr>
+    
+    <h2>Login</h2>
+    <input type="text" id="loginUsername" placeholder="Username">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <div id="loginResult"></div>
+    
+    <hr>
+    
+    <h2>Products</h2>
+    <button onclick="loadProducts()">Load Products</button>
+    <div id="products"></div>
+    
+    <hr>
+    
+    <h2>Recommendations (Login first)</h2>
+    <button onclick="loadRecommendations()">Get Recommendations</button>
+    <div id="recommendations"></div>
+    
+    <script>
+        const API = 'http://localhost:8000';
+        let token = localStorage.getItem('token');
+        
+        // Check API status
+        fetch(`${API}/`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('status').innerHTML = 
+                    '<span class="success">✅ API Connected: ' + data.message + '</span>';
+            })
+            .catch(err => {
+                document.getElementById('status').innerHTML = 
+                    '<span class="error">❌ API Not Connected: ' + err.message + '</span>';
+            });
+        
+        async function register() {
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            
+            if (!username || !email || !password) {
+                document.getElementById('regResult').innerHTML = 
+                    '<span class="error">Please fill all fields</span>';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('regResult').innerHTML = 
+                        '<span class="success">✅ Registration successful! Token: ' + data.access_token.substring(0, 20) + '...</span>';
+                    localStorage.setItem('token', data.access_token);
+                    token = data.access_token;
+                } else {
+                    document.getElementById('regResult').innerHTML = 
+                        '<span class="error">❌ Error: ' + (data.detail || 'Unknown error') + '</span>';
+                }
+            } catch (err) {
+                document.getElementById('regResult').innerHTML = 
+                    '<span class="error">❌ Error: ' + err.message + '</span>';
+            }
+        }
+        
+        async function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!username || !password) {
+                document.getElementById('loginResult').innerHTML = 
+                    '<span class="error">Please enter username and password</span>';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('loginResult').innerHTML = 
+                        '<span class="success">✅ Login successful! Welcome ' + data.username + '</span>';
+                    localStorage.setItem('token', data.access_token);
+                    token = data.access_token;
+                } else {
+                    document.getElementById('loginResult').innerHTML = 
+                        '<span class="error">❌ Login failed: ' + (data.detail || 'Invalid credentials') + '</span>';
+                }
+            } catch (err) {
+                document.getElementById('loginResult').innerHTML = 
+                    '<span class="error">❌ Error: ' + err.message + '</span>';
+            }
+        }
+        
+        async function loadProducts() {
+            if (!token) {
+                document.getElementById('products').innerHTML = 
+                    '<span class="error">Please login first</span>';
+                return;
+            }
+            
+            document.getElementById('products').innerHTML = 'Loading...';
+            
+            try {
+                const response = await fetch(`${API}/products?limit=10`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const products = await response.json();
+                
+                if (products.length === 0) {
+                    document.getElementById('products').innerHTML = 
+                        '<span class="error">No products found in database</span>';
+                    return;
+                }
+                
+                let html = '<div>';
+                products.forEach(p => {
+                    html += `
+                        <div class="product">
+                            <strong>${p.name}</strong><br>
+                            Price: $${p.price}<br>
+                            Category: ${p.category}<br>
+                            Rating: ${p.rating}⭐
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                document.getElementById('products').innerHTML = html;
+            } catch (err) {
+                document.getElementById('products').innerHTML = 
+                    '<span class="error">Error: ' + err.message + '</span>';
+            }
+        }
+        
+        async function loadRecommendations() {
+            if (!token) {
+                document.getElementById('recommendations').innerHTML = 
+                    '<span class="error">Please login first</span>';
+                return;
+            }
+            
+            document.getElementById('recommendations').innerHTML = 'Loading...';
+            
+            try {
+                const response = await fetch(`${API}/recommendations?limit=5`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                const recs = data.recommendations;
+                
+                if (recs.length === 0) {
+                    document.getElementById('recommendations').innerHTML = 
+                        '<span class="error">No recommendations yet. Browse some products first!</span>';
+                    return;
+                }
+                
+                let html = '<div>';
+                recs.forEach(r => {
+                    html += `
+                        <div class="product">
+                            <strong>${r.name}</strong><br>
+                            Price: $${r.price}<br>
+                            Category: ${r.category}<br>
+                            Rating: ${r.rating}⭐
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                document.getElementById('recommendations').innerHTML = html;
+            } catch (err) {
+                document.getElementById('recommendations').innerHTML = 
+                    '<span class="error">Error: ' + err.message + '</span>';
+            }
+        }
+    </script>
+</body>
+</html>

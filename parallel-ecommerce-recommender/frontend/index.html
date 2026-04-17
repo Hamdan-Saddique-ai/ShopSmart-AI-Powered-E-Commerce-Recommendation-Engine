@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopSmart - AI-Powered E-Commerce</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            transition: all 0.3s ease;
+        }
+        
+        .dark-mode {
+            background-color: #1a1a2e;
+            color: #eee;
+        }
+        
+        .dark-mode .card {
+            background-color: #16213e;
+            color: #eee;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .recommendation-slider {
+            scroll-behavior: smooth;
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+        
+        .recommendation-slider::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .recommendation-slider::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .recommendation-slider::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark-mode:bg-gray-900">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg dark:bg-gray-800 fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-store text-blue-600 text-2xl mr-2"></i>
+                    <span class="font-bold text-xl text-gray-800 dark:text-white">ShopSmart</span>
+                </div>
+                
+                <div class="hidden md:flex space-x-8">
+                    <a href="#" onclick="showPage('home')" class="text-gray-700 dark:text-gray-300 hover:text-blue-600">Home</a>
+                    <a href="#" onclick="showPage('products')" class="text-gray-700 dark:text-gray-300 hover:text-blue-600">Products</a>
+                    <a href="#" onclick="showPage('dashboard')" class="text-gray-700 dark:text-gray-300 hover:text-blue-600">Dashboard</a>
+                    <a href="#" onclick="showPage('profile')" class="text-gray-700 dark:text-gray-300 hover:text-blue-600">Profile</a>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleDarkMode()" class="text-gray-700 dark:text-gray-300">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button onclick="refreshRecommendations()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    <button id="authButton" onclick="handleAuth()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                        Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-16">
+        <!-- Home Page -->
+        <div id="homePage" class="container mx-auto px-4 py-8">
+            <!-- Hero Section -->
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 mb-12 text-white">
+                <h1 class="text-5xl font-bold mb-4">Welcome to ShopSmart</h1>
+                <p class="text-xl mb-6">AI-Powered Personalized Shopping Experience</p>
+                <button onclick="showPage('products')" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100">
+                    Start Shopping
+                </button>
+            </div>
+            
+            <!-- Recommendations Section -->
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold mb-6 dark:text-white">
+                    <i class="fas fa-star text-yellow-500"></i> Personalized For You
+                </h2>
+                <div id="recommendationsSlider" class="recommendation-slider flex gap-6 pb-4">
+                    <div class="loading-spinner mx-auto"></div>
+                </div>
+            </div>
+            
+            <!-- Categories -->
+            <div>
+                <h2 class="text-2xl font-bold mb-6 dark:text-white">Shop by Category</h2>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4" id="categories">
+                    <!-- Categories will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Products Page -->
+        <div id="productsPage" class="container mx-auto px-4 py-8 hidden">
+            <div class="mb-6">
+                <input type="text" id="searchInput" placeholder="Search products..." 
+                       class="w-full md:w-96 px-4 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-600">
+                <select id="categoryFilter" class="ml-4 px-4 py-2 border rounded-lg dark:bg-gray-800">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+            <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Products will be loaded here -->
+            </div>
+        </div>
+        
+        <!-- Dashboard Page -->
+        <div id="dashboardPage" class="container mx-auto px-4 py-8 hidden">
+            <h2 class="text-2xl font-bold mb-6 dark:text-white">Your Dashboard</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Performance Stats -->
+                <div class="card bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg">
+                    <h3 class="text-xl font-semibold mb-4 dark:text-white">Performance Statistics</h3>
+                    <div id="performanceStats" class="space-y-2">
+                        <div class="loading-spinner mx-auto"></div>
+                    </div>
+                </div>
+                
+                <!-- Recently Viewed -->
+                <div class="card bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg">
+                    <h3 class="text-xl font-semibold mb-4 dark:text-white">Recently Viewed</h3>
+                    <div id="recentlyViewed" class="space-y-2">
+                        <p class="text-gray-500 dark:text-gray-400">No recently viewed items</p>
+                    </div>
+                </div>
+                
+                <!-- Favorites -->
+                <div class="card bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg lg:col-span-2">
+                    <h3 class="text-xl font-semibold mb-4 dark:text-white">Your Favorites</h3>
+                    <div id="favorites" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <p class="text-gray-500 dark:text-gray-400 col-span-3">No favorites yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Page -->
+        <div id="profilePage" class="container mx-auto px-4 py-8 hidden">
+            <div class="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+                <h2 class="text-2xl font-bold mb-6 dark:text-white">User Profile</h2>
+                <div id="profileInfo" class="space-y-4">
+                    <!-- Profile info will be loaded -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/recommendations.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopSmart - E-Commerce Recommendation System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h1 class="text-3xl font-bold text-blue-600 mb-2">
+                <i class="fas fa-store"></i> ShopSmart
+            </h1>
+            <p class="text-gray-600">AI-Powered Parallel E-Commerce Recommendation System</p>
+        </div>
+
+        <!-- Auth Section -->
+        <div id="authSection" class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4">Login / Register</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <input type="text" id="username" placeholder="Username" class="w-full p-2 border rounded mb-2">
+                    <input type="password" id="password" placeholder="Password" class="w-full p-2 border rounded mb-2">
+                    <button onclick="register()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 mr-2">
+                        Register
+                    </button>
+                    <button onclick="login()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        Login
+                    </button>
+                </div>
+                <div id="userInfo" class="hidden">
+                    <div class="bg-green-100 p-4 rounded">
+                        <p class="font-bold">Logged in as: <span id="usernameDisplay"></span></p>
+                        <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded mt-2">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Section -->
+        <div id="productsSection" class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4">Products</h2>
+            <div class="mb-4">
+                <input type="text" id="searchInput" placeholder="Search products..." class="p-2 border rounded w-full md:w-64">
+                <select id="categoryFilter" class="p-2 border rounded ml-2">
+                    <option value="">All Categories</option>
+                </select>
+                <button onclick="loadProducts()" class="bg-blue-600 text-white px-4 py-2 rounded ml-2">Search</button>
+            </div>
+            <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div class="text-center py-8">Loading products...</div>
+            </div>
+        </div>
+
+        <!-- Recommendations Section -->
+        <div id="recommendationsSection" class="bg-white rounded-lg shadow-lg p-6 mb-8 hidden">
+            <h2 class="text-2xl font-bold mb-4">
+                <i class="fas fa-star text-yellow-500"></i> Personalized Recommendations
+                <button onclick="loadRecommendations()" class="bg-purple-600 text-white px-4 py-2 rounded ml-4 text-sm">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </h2>
+            <div id="recommendationsGrid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div class="text-center py-8">Login to see recommendations</div>
+            </div>
+        </div>
+
+        <!-- Performance Stats -->
+        <div id="statsSection" class="bg-white rounded-lg shadow-lg p-6 hidden">
+            <h2 class="text-2xl font-bold mb-4">Performance Statistics</h2>
+            <div id="stats" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-blue-100 p-4 rounded text-center">
+                    <p class="text-sm">System Status</p>
+                    <p class="text-xl font-bold text-green-600">Running</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        let token = localStorage.getItem('token');
+        let currentUser = null;
+
+        // Load categories on startup
+        loadCategories();
+
+        if (token) {
+            document.getElementById('authSection').querySelector('.grid').classList.add('hidden');
+            document.getElementById('userInfo').classList.remove('hidden');
+            document.getElementById('usernameDisplay').innerText = localStorage.getItem('username');
+            document.getElementById('recommendationsSection').classList.remove('hidden');
+            document.getElementById('statsSection').classList.remove('hidden');
+            currentUser = { username: localStorage.getItem('username') };
+            loadProducts();
+            loadRecommendations();
+            loadStats();
+        } else {
+            loadProducts();
+        }
+
+        async function register() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                alert('Please enter username and password');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email: `${username}@test.com`, password })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    token = data.access_token;
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('username', username);
+                    alert('Registration successful!');
+                    location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Registration failed: ' + error.detail);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                alert('Please enter username and password');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    token = data.access_token;
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('username', username);
+                    alert('Login successful!');
+                    location.reload();
+                } else {
+                    alert('Login failed');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        async function loadCategories() {
+            try {
+                const response = await fetch(`${API_URL}/categories`);
+                const categories = await response.json();
+                const select = document.getElementById('categoryFilter');
+                categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = cat;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+
+        async function loadProducts() {
+            const search = document.getElementById('searchInput').value;
+            const category = document.getElementById('categoryFilter').value;
+            const grid = document.getElementById('productsGrid');
+            
+            grid.innerHTML = '<div class="text-center py-8">Loading...</div>';
+            
+            try {
+                let url = `${API_URL}/products?limit=12`;
+                if (search) url += `&search=${search}`;
+                if (category) url += `&category=${category}`;
+                
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const response = await fetch(url, { headers });
+                const products = await response.json();
+                
+                if (products.length === 0) {
+                    grid.innerHTML = '<div class="text-center py-8">No products found</div>';
+                    return;
+                }
+                
+                grid.innerHTML = products.map(product => `
+                    <div class="border rounded-lg p-4 hover:shadow-lg transition">
+                        <img src="${product.image_url}" alt="${product.name}" class="w-full h-48 object-cover rounded mb-3">
+                        <h3 class="font-bold text-lg">${product.name}</h3>
+                        <p class="text-gray-600 text-sm">${product.description.substring(0, 80)}...</p>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-2xl font-bold text-blue-600">$${product.price}</span>
+                            <span class="text-yellow-500"><i class="fas fa-star"></i> ${product.rating}</span>
+                        </div>
+                        <button onclick="interact(${product.id}, 'view')" class="mt-3 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                            View Product
+                        </button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                grid.innerHTML = '<div class="text-center py-8 text-red-500">Error loading products</div>';
+            }
+        }
+
+        async function loadRecommendations() {
+            if (!token) return;
+            
+            const grid = document.getElementById('recommendationsGrid');
+            grid.innerHTML = '<div class="text-center py-8">Loading recommendations...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/recommendations?limit=8`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                const recommendations = data.recommendations;
+                
+                if (recommendations.length === 0) {
+                    grid.innerHTML = '<div class="text-center py-8">No recommendations yet. Browse some products first!</div>';
+                    return;
+                }
+                
+                grid.innerHTML = recommendations.map(product => `
+                    <div class="border rounded-lg p-4 hover:shadow-lg transition">
+                        <img src="${product.image_url}" alt="${product.name}" class="w-full h-40 object-cover rounded mb-3">
+                        <h3 class="font-bold">${product.name}</h3>
+                        <p class="text-xl font-bold text-green-600">$${product.price}</p>
+                        <div class="flex items-center mt-2">
+                            <i class="fas fa-star text-yellow-400"></i>
+                            <span class="ml-1">${product.rating}</span>
+                        </div>
+                        <button onclick="interact(${product.id}, 'click')" class="mt-3 w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700">
+                            <i class="fas fa-shopping-cart"></i> View
+                        </button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading recommendations:', error);
+            }
+        }
+
+        async function interact(productId, type) {
+            if (!token) {
+                alert('Please login to interact with products');
+                return;
+            }
+            
+            try {
+                await fetch(`${API_URL}/user-interaction`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ product_id: productId, interaction_type: type })
+                });
+                
+                if (type === 'view') {
+                    alert('Product viewed! Recommendations will update.');
+                    setTimeout(() => loadRecommendations(), 1000);
+                }
+            } catch (error) {
+                console.error('Error recording interaction:', error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_URL}/performance/stats`);
+                const stats = await response.json();
+                const statsDiv = document.getElementById('stats');
+                statsDiv.innerHTML = `
+                    <div class="bg-blue-100 p-4 rounded text-center">
+                        <p class="text-sm">Status</p>
+                        <p class="text-xl font-bold text-green-600">${stats.message || 'Running'}</p>
+                    </div>
+                    <div class="bg-green-100 p-4 rounded text-center">
+                        <p class="text-sm">Parallel Processing</p>
+                        <p class="text-xl font-bold">${stats.parallel_processing || 'Enabled'}</p>
+                    </div>
+                    <div class="bg-purple-100 p-4 rounded text-center">
+                        <p class="text-sm">Cache</p>
+                        <p class="text-xl font-bold">${stats.cache_enabled ? 'Active' : 'Disabled'}</p>
+                    </div>
+                    <div class="bg-orange-100 p-4 rounded text-center">
+                        <p class="text-sm">ML Engine</p>
+                        <p class="text-xl font-bold">Active</p>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Auto-refresh products on search/filter
+        document.getElementById('searchInput').addEventListener('input', () => loadProducts());
+        document.getElementById('categoryFilter').addEventListener('change', () => loadProducts());
+    </script>
+</body>
+</html>
