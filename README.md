@@ -74,16 +74,6 @@ Get Personalized Suggestions
 - **JavaScript (ES6+)** - Logic, Recommendations, State Management
 - **LocalStorage API** - Data Persistence
 
-## 📦 Installation
-
-# Clone the repository
-git clone https://github.com/yourusername/ShopSmart-AI-Recommendation-Engine.git
-
-# Navigate to project directory
-cd ShopSmart-AI-Recommendation-Engine
-
-# Open in browser
-open ecommerce_demo.html
 🎮 Usage Guide
 Register a new account or Login with existing credentials
 
