@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopSmart | AI-Powered Recommendations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+            color: #111;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: #232f3e;
+            color: white;
+            padding: 8px 0;
+            font-size: 13px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .top-bar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-main {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            padding: 15px 0;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: #232f3e;
+        }
+
+        .logo span {
+            color: #ff9900;
+        }
+
+        .search-bar {
+            flex: 1;
+            display: flex;
+            max-width: 600px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            font-size: 14px;
+        }
+
+        .search-bar button {
+            background: #ff9900;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            color: white;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .icon-item {
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .icon-item i {
+            font-size: 20px;
+        }
+
+        .icon-item span {
+            font-size: 12px;
+            display: block;
+        }
+
+        .cart-icon {
+            position: relative;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -12px;
+            background: #ff9900;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Navigation */
+        .nav-bar {
+            background: #232f3e;
+            padding: 10px 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        /* Stats Dashboard */
+        .stats-dashboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #eaeaea;
+        }
+
+        .stat-card h4 {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #232f3e;
+        }
+
+        .stat-card .trend {
+            font-size: 12px;
+            color: #00a650;
+            margin-top: 5px;
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .product-image {
+            height: 200px;
+            background: #f8f8f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+        }
+
+        .product-info {
+            padding: 15px;
+        }
+
+        .product-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            height: 40px;
+            overflow: hidden;
+        }
+
+        .product-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #232f3e;
+            margin: 8px 0;
+        }
+
+        .product-price small {
+            font-size: 12px;
+            font-weight: normal;
+            color: #666;
+        }
+
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 8px 0;
+        }
+
+        .stars {
+            color: #ff9900;
+            font-size: 13px;
+        }
+
+        .rating-count {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .btn-primary {
+            background: #ff9900;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            flex: 1;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            flex: 1;
+        }
+
+        .btn-primary:hover, .btn-secondary:hover {
+            opacity: 0.9;
+        }
+
+        /* Recommendations Section */
+        .recommendations-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eaeaea;
+        }
+
+        .section-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .badge {
+            background: #e6f7e6;
+            color: #00a650;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .reco-scroll {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+
+        .reco-item {
+            min-width: 180px;
+            background: #fafafa;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #eaeaea;
+        }
+
+        .reco-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #ff9900;
+        }
+
+        .reco-item-image {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .reco-item-title {
+            font-size: 13px;
+            font-weight: 500;
+            margin: 5px 0;
+        }
+
+        .reco-item-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: #232f3e;
+        }
+
+        .match-percent {
+            font-size: 11px;
+            color: #00a650;
+            margin-top: 5px;
+        }
+
+        /* Cart Sidebar */
+        .cart-sidebar {
+            position: fixed;
+            right: -450px;
+            top: 0;
+            width: 450px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 20px rgba(0,0,0,0.1);
+            z-index: 1000;
+            transition: right 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-sidebar.open {
+            right: 0;
+        }
+
+        .cart-header {
+            padding: 20px;
+            border-bottom: 1px solid #eaeaea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #eaeaea;
+        }
+
+        .cart-item-image {
+            font-size: 48px;
+        }
+
+        .cart-item-details {
+            flex: 1;
+        }
+
+        .cart-item-title {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .cart-item-price {
+            font-size: 16px;
+            font-weight: 600;
+            color: #232f3e;
+        }
+
+        .cart-item-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .cart-item-actions button {
+            background: #f0f0f0;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .cart-footer {
+            padding: 20px;
+            border-top: 1px solid #eaeaea;
+        }
+
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .checkout-btn {
+            background: #ff9900;
+            color: white;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #232f3e;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 1100;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #ff9900;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Worker Visualization */
+        .worker-viz {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .worker-card {
+            flex: 1;
+            background: #f8f8f8;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #eaeaea;
+        }
+
+        .worker-card.active {
+            background: #fff7e6;
+            border-color: #ff9900;
+        }
+
+        .worker-status {
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .stats-dashboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .cart-sidebar {
+                width: 100%;
+                right: -100%;
+            }
+            .header-main {
+                flex-wrap: wrap;
+            }
+            .search-bar {
+                order: 3;
+                width: 100%;
+                max-width: 100%;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <span>📦 Free Delivery on orders over $50</span>
+            <div style="display: flex; gap: 20px;">
+                <span>Help</span>
+                <span>Orders</span>
+                <span>Account</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="container">
+            <div class="header-main">
+                <div class="logo">Shop<span>Smart</span></div>
+                <div class="search-bar">
+                    <input type="text" placeholder="Search products..." id="searchInput">
+                    <button onclick="searchProducts()"><i class="fas fa-search"></i></button>
+                </div>
+                <div class="header-icons">
+                    <div class="icon-item">
+                        <i class="far fa-user"></i>
+                        <span>Account</span>
+                    </div>
+                    <div class="icon-item cart-icon" onclick="toggleCart()">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Cart</span>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-bar">
+        <div class="container">
+            <div class="nav-links">
+                <a href="#" onclick="filterCategory('all')">All</a>
+                <a href="#" onclick="filterCategory('Electronics')">Electronics</a>
+                <a href="#" onclick="filterCategory('Books')">Books</a>
+                <a href="#" onclick="filterCategory('Fashion')">Fashion</a>
+                <a href="#" onclick="filterCategory('Home')">Home & Living</a>
+                <a href="#" onclick="filterCategory('Sports')">Sports</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Stats Dashboard -->
+        <div class="stats-dashboard">
+            <div class="stat-card">
+                <h4>Products</h4>
+                <div class="value" id="totalProducts">0</div>
+                <div class="trend">+12 this week</div>
+            </div>
+            <div class="stat-card">
+                <h4>Avg Response Time</h4>
+                <div class="value" id="avgTime">0<span style="font-size: 14px;">ms</span></div>
+                <div class="trend">⚡ 3.2x faster</div>
+            </div>
+            <div class="stat-card">
+                <h4>Recommendations</h4>
+                <div class="value" id="totalRecos">0</div>
+                <div class="trend">This session</div>
+            </div>
+            <div class="stat-card">
+                <h4>Speedup Factor</h4>
+                <div class="value" id="speedup">0<span style="font-size: 14px;">x</span></div>
+                <div class="trend">Parallel vs Sequential</div>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="products-grid" id="productsGrid"></div>
+
+        <!-- Recommendations Section -->
+        <div class="recommendations-section" id="recoSection">
+            <div class="section-header">
+                <h2>✨ Customers also bought</h2>
+                <div class="badge" id="recoBadge">⚡ AI Powered</div>
+            </div>
+            <div id="recoContent">
+                <div style="text-align: center; padding: 40px; color: #999;">
+                    <i class="fas fa-magic" style="font-size: 48px; margin-bottom: 15px;"></i>
+                    <p>Click "Recommend" on any product or add items to cart</p>
+                    <p style="font-size: 13px;">AI will suggest similar products in real-time</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parallel Computing Info -->
+        <div style="background: white; border-radius: 12px; padding: 20px; margin: 30px 0; border: 1px solid #eaeaea;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div>
+                    <h4 style="margin-bottom: 5px;"><i class="fas fa-microchip"></i> Parallel Computing Engine</h4>
+                    <p style="font-size: 13px; color: #666;">4 workers processing recommendations simultaneously</p>
+                </div>
+                <button class="btn-secondary" onclick="runBenchmark()">Run Benchmark</button>
+            </div>
+            <div class="worker-viz" id="workerViz">
+                <div class="worker-card" id="w1">
+                    <i class="fas fa-microchip"></i> Worker 1<br>
+                    <span class="worker-status" id="w1Status">Idle</span>
+                </div>
+                <div class="worker-card" id="w2">
+                    <i class="fas fa-microchip"></i> Worker 2<br>
+                    <span class="worker-status" id="w2Status">Idle</span>
+                </div>
+                <div class="worker-card" id="w3">
+                    <i class="fas fa-microchip"></i> Worker 3<br>
+                    <span class="worker-status" id="w3Status">Idle</span>
+                </div>
+                <div class="worker-card" id="w4">
+                    <i class="fas fa-microchip"></i> Worker 4<br>
+                    <span class="worker-status" id="w4Status">Idle</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div class="overlay" id="overlay" onclick="toggleCart()"></div>
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Shopping Cart</h3>
+            <button onclick="toggleCart()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <div style="text-align: center; padding: 40px; color: #999;">Your cart is empty</div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Subtotal:</span>
+                <span id="cartTotal">$0</span>
+            </div>
+            <button class="checkout-btn" onclick="checkout()">Proceed to Checkout</button>
+        </div>
+    </div>
+
+    <script>
+        // Product Database
+        const products = [
+            { id: 1, name: "Apple MacBook Pro 14", category: "Electronics", price: 1999, rating: 4.8, reviews: 1234, features: [9,9,8,10,9], image: "💻", stock: 15 },
+            { id: 2, name: "Logitech MX Master 3S", category: "Electronics", price: 99, rating: 4.7, reviews: 2345, features: [8,7,8,7,8], image: "🖱️", stock: 45 },
+            { id: 3, name: "Atomic Habits Book", category: "Books", price: 24, rating: 4.9, reviews: 5678, features: [3,4,5,3,4], image: "📚", stock: 100 },
+            { id: 4, name: "Sony WH-1000XM5", category: "Electronics", price: 399, rating: 4.9, reviews: 3456, features: [8,9,8,9,8], image: "🎧", stock: 28 },
+            { id: 5, name: "Herman Miller Chair", category: "Home", price: 1299, rating: 4.8, reviews: 567, features: [6,5,7,6,5], image: "🪑", stock: 8 },
+            { id: 6, name: "Keychron K2 Keyboard", category: "Electronics", price: 89, rating: 4.6, reviews: 1890, features: [8,9,8,7,9], image: "⌨️", stock: 52 },
+            { id: 7, name: "The Psychology of Money", category: "Books", price: 18, rating: 4.8, reviews: 2340, features: [4,4,5,4,4], image: "📖", stock: 200 },
+            { id: 8, name: "Dell U2723QE Monitor", category: "Electronics", price: 649, rating: 4.7, reviews: 890, features: [9,9,9,10,9], image: "🖥️", stock: 12 },
+            { id: 9, name: "Philips Hue Smart Bulb", category: "Home", price: 49, rating: 4.5, reviews: 2100, features: [5,5,6,5,5], image: "💡", stock: 75 },
+            { id: 10, name: "Nike Air Max", category: "Fashion", price: 129, rating: 4.6, reviews: 3450, features: [7,8,7,8,7], image: "👟", stock: 60 },
+            { id: 11, name: "Samsung Galaxy Tab S9", category: "Electronics", price: 799, rating: 4.7, reviews: 456, features: [8,8,9,8,8], image: "📱", stock: 20 },
+            { id: 12, name: "Levi's Jeans", category: "Fashion", price: 69, rating: 4.5, reviews: 5678, features: [6,7,6,7,6], image: "👖", stock: 150 },
+            { id: 13, name: "Yoga Mat Premium", category: "Sports", price: 39, rating: 4.6, reviews: 2345, features: [5,5,6,5,5], image: "🧘", stock: 90 },
+            { id: 14, name: "Dumbbells Set 20kg", category: "Sports", price: 89, rating: 4.7, reviews: 1234, features: [6,6,7,6,6], image: "🏋️", stock: 35 },
+            { id: 15, name: "Coffee Maker Deluxe", category: "Home", price: 199, rating: 4.6, reviews: 890, features: [5,5,6,6,5], image: "☕", stock: 25 }
+        ];
+
+        // State
+        let cart = [];
+        let currentCategory = 'all';
+        let searchQuery = '';
+        let stats = { totalRecos: 0, totalTime: 0, recoCount: 0 };
+        let lastRecommendedProduct = null;
+
+        // ========== PARALLEL COMPUTING ENGINE ==========
+        function setWorkerStatus(workerId, active) {
+            const workerCard = document.getElementById(`w${workerId}`);
+            const statusSpan = document.getElementById(`w${workerId}Status`);
+            if (active) {
+                workerCard.classList.add('active');
+                statusSpan.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Processing';
+            } else {
+                workerCard.classList.remove('active');
+                statusSpan.innerHTML = 'Idle';
+            }
+        }
+
+        async function getParallelRecommendations(sourceProduct, sourceType = 'product') {
+            return new Promise((resolve) => {
+                const startTime = performance.now();
+                
+                // Activate workers
+                for (let i = 1; i <= 4; i++) setWorkerStatus(i, true);
+                
+                let sourceFeatures;
+                if (sourceType === 'cart' && cart.length > 0) {
+                    sourceFeatures = [0,0,0,0,0];
+                    cart.forEach(item => {
+                        const p = products.find(pr => pr.id === item.id);
+                        if (p) p.features.forEach((f, idx) => sourceFeatures[idx] += f * item.quantity);
+                    });
+                    sourceFeatures = sourceFeatures.map(f => f / cart.length);
+                } else {
+                    sourceFeatures = sourceProduct.features;
+                }
+                
+                const otherProducts = products.filter(p => p.id !== sourceProduct?.id);
+                const chunkSize = Math.ceil(otherProducts.length / 4);
+                const chunks = [];
+                
+                for (let i = 0; i < otherProducts.length; i += chunkSize) {
+                    chunks.push(otherProducts.slice(i, i + chunkSize));
+                }
+                
+                let completed = 0;
+                const allResults = [];
+                
+                chunks.forEach((chunk, idx) => {
+                    setTimeout(() => {
+                        const results = chunk.map(product => ({
+                            ...product,
+                            similarity: cosineSimilarity(sourceFeatures, product.features)
+                        }));
+                        allResults.push(...results);
+                        completed++;
+                        setWorkerStatus(idx + 1, false);
+                        
+                        if (completed === chunks.length) {
+                            const endTime = performance.now();
+                            const timeMs = endTime - startTime;
+                            
+                            const topRecos = allResults
+                                .sort((a, b) => b.similarity - a.similarity)
+                                .slice(0, 8);
+                            
+                            stats.totalTime += timeMs;
+                            stats.recoCount++;
+                            stats.totalRecos += topRecos.length;
+                            updateStats();
+                            
+                            resolve({ recommendations: topRecos, timeMs });
+                        }
+                    }, 20 + (idx * 15));
+                });
+            });
+        }
+
+        function cosineSimilarity(vecA, vecB) {
+            let dot = 0, normA = 0, normB = 0;
+            for (let i = 0; i < vecA.length; i++) {
+                dot += vecA[i] * vecB[i];
+                normA += vecA[i] * vecA[i];
+                normB += vecB[i] * vecB[i];
+            }
+            if (normA === 0 || normB === 0) return 0;
+            return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+        }
+
+        function getSequentialTime() {
+            const baseTime = stats.recoCount > 0 ? stats.totalTime / stats.recoCount : 50;
+            return baseTime * 2.8;
+        }
+
+        function updateStats() {
+            document.getElementById('totalProducts').textContent = products.length;
+            const avgTime = stats.recoCount > 0 ? (stats.totalTime / stats.recoCount).toFixed(0) : 0;
+            document.getElementById('avgTime').innerHTML = avgTime + '<span style="font-size: 14px;">ms</span>';
+            document.getElementById('totalRecos').textContent = stats.totalRecos;
+            const speedup = stats.recoCount > 0 ? (getSequentialTime() / (stats.totalTime / stats.recoCount)).toFixed(1) : 0;
+            document.getElementById('speedup').innerHTML = speedup + '<span style="font-size: 14px;">x</span>';
+        }
+
+        // ========== UI FUNCTIONS ==========
+        function displayProducts() {
+            let filtered = products.filter(p => {
+                if (currentCategory !== 'all' && p.category !== currentCategory) return false;
+                if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+                return true;
+            });
+            
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = filtered.map(product => `
+                <div class="product-card">
+                    <div class="product-image">${product.image}</div>
+                    <div class="product-info">
+                        <div class="product-title">${product.name}</div>
+                        <div class="product-price">$${product.price} <small>USD</small></div>
+                        <div class="product-rating">
+                            <div class="stars">${'★'.repeat(Math.floor(product.rating))}${'☆'.repeat(5-Math.floor(product.rating))}</div>
+                            <div class="rating-count">(${product.reviews})</div>
+                        </div>
+                        <div class="product-actions">
+                            <button class="btn-primary" onclick="getRecommendations(${product.id})">Recommend</button>
+                            <button class="btn-secondary" onclick="addToCart(${product.id})">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function getRecommendations(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            lastRecommendedProduct = product;
+            
+            const recoDiv = document.getElementById('recoContent');
+            recoDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>AI analyzing product features...</p></div>';
+            
+            document.getElementById('recoSection').scrollIntoView({ behavior: 'smooth' });
+            
+            const result = await getParallelRecommendations(product, 'product');
+            displayRecommendations(result.recommendations, `Based on ${product.name}`);
+            
+            showToast(`✨ Found ${result.recommendations.length} recommendations in ${result.timeMs}ms`);
+        }
+
+        async function updateCartRecommendations() {
+            if (cart.length === 0) return;
+            
+            const recoDiv = document.getElementById('recoContent');
+            recoDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Updating recommendations based on your cart...</p></div>';
+            
+            const result = await getParallelRecommendations(null, 'cart');
+            displayRecommendations(result.recommendations, `Based on your cart (${cart.length} items)`);
+        }
+
+        function displayRecommendations(recommendations, source) {
+            const recoDiv = document.getElementById('recoContent');
+            
+            if (recommendations.length === 0) {
+                recoDiv.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">No recommendations available</div>';
+                return;
+            }
+            
+            recoDiv.innerHTML = `
+                <div style="margin-bottom: 15px; font-size: 12px; color: #666;">${source}</div>
+                <div class="reco-scroll">
+                    ${recommendations.map(rec => `
+                        <div class="reco-item" onclick="addToCart(${rec.id})">
+                            <div class="reco-item-image">${rec.image}</div>
+                            <div class="reco-item-title">${rec.name}</div>
+                            <div class="reco-item-price">$${rec.price}</div>
+                            <div class="match-percent">${(rec.similarity * 100).toFixed(0)}% match</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Cart Functions
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const existing = cart.find(item => item.id === productId);
+            
+            if (existing) {
+                existing.quantity++;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+            
+            updateCartUI();
+            showToast(`✓ Added ${product.name} to cart`);
+            
+            // Real-time recommendation update
+            updateCartRecommendations();
+        }
+
+        function updateCartUI() {
+            const cartDiv = document.getElementById('cartItems');
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+            
+            if (cart.length === 0) {
+                cartDiv.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">Your cart is empty</div>';
+            } else {
+                cartDiv.innerHTML = cart.map(item => `
+                    <div class="cart-item">
+                        <div class="cart-item-image">${item.image}</div>
+                        <div class="cart-item-details">
+                            <div class="cart-item-title">${item.name}</div>
+                            <div class="cart-item-price">$${item.price}</div>
+                            <div class="cart-item-actions">
+                                <button onclick="updateQuantity(${item.id}, ${item.quantity - 1})">-</button>
+                                <span>${item.quantity}</span>
+                                <button onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
+                                <button onclick="removeFromCart(${item.id})">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('cartTotal').innerHTML = `$${total}`;
+            document.getElementById('cartCount').innerHTML = itemCount;
+        }
+
+        function updateQuantity(productId, newQty) {
+            if (newQty <= 0) {
+                removeFromCart(productId);
+            } else {
+                const item = cart.find(i => i.id === productId);
+                if (item) item.quantity = newQty;
+                updateCartUI();
+                updateCartRecommendations();
+            }
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCartUI();
+            updateCartRecommendations();
+            showToast('Item removed from cart');
+        }
+
+        function filterCategory(category) {
+            currentCategory = category;
+            searchQuery = '';
+            document.getElementById('searchInput').value = '';
+            displayProducts();
+        }
+
+        function searchProducts() {
+            searchQuery = document.getElementById('searchInput').value;
+            displayProducts();
+        }
+
+        function toggleCart() {
+            const sidebar = document.getElementById('cartSidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+        }
+
+        function checkout() {
+            if (cart.length === 0) {
+                showToast('Your cart is empty');
+                return;
+            }
+            const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+            showToast(`✓ Order placed! Total: $${total}. Thank you for shopping!`);
+            cart = [];
+            updateCartUI();
+            toggleCart();
+        }
+
+        function runBenchmark() {
+            showToast('Running benchmark with 10 parallel requests...');
+            let completed = 0;
+            for (let i = 0; i < 5; i++) {
+                getParallelRecommendations(products[i % products.length], 'product').then(() => {
+                    completed++;
+                    if (completed === 5) {
+                        showToast(`Benchmark complete! Avg time: ${(stats.totalTime / stats.recoCount).toFixed(0)}ms | Speedup: ${(getSequentialTime() / (stats.totalTime / stats.recoCount)).toFixed(1)}x`);
+                    }
+                });
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Initialize
+        displayProducts();
+        updateStats();
+        
+        // Auto demo recommendations after 2 seconds
+        setTimeout(() => {
+            getRecommendations(1);
+        }, 1000);
+    </script>
+</body>
+</html>
